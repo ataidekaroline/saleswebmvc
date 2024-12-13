@@ -5,31 +5,47 @@ using SalesWebMvc.Data;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 
-
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuração do DbContext
 builder.Services.AddDbContext<SalesWebMvcContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SalesWebMvcContext") ?? throw new InvalidOperationException("Connection string 'SalesWebMvcContext' not found.")));
 
-// Add services to the container.
+// Registrar o SeedingService
+builder.Services.AddScoped<SeedingService>();
+
+// Adicionar controllers e views
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Aplica as migrations e chama o seeding no desenvolvimento
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        // Aplica as migrations automaticamente
+        var dbContext = scope.ServiceProvider.GetRequiredService<SalesWebMvcContext>();
+        dbContext.Database.Migrate(); // Aplica as migrations automaticamente
+
+        // Chama o método de Seed para adicionar dados
+        var seedingService = scope.ServiceProvider.GetRequiredService<SeedingService>();
+        seedingService.Seed(); // Chama o método Seed
+    }
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseHsts();  // The default HSTS value is 30 days. You may want to change this for production scenarios.
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
+// Configuração da rota do Controller
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
