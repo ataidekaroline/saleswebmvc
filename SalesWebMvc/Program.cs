@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SalesWebMvc.Data;
+using MySql.Data.MySqlClient;
+using Microsoft.Extensions.Configuration;
 
 
 var builder = WebApplication.CreateBuilder(args);
