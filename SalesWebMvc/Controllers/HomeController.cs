@@ -5,9 +5,9 @@ namespace SalesWebMvc.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly SellersService _sellersService;
+        private readonly SellerService _sellersService;
 
-        public HomeController(SellersService sellersService)
+        public HomeController(SellerService sellersService)
         {
             _sellersService = sellersService;
         }
