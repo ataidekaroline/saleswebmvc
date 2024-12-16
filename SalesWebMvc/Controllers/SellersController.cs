@@ -58,8 +58,15 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            _sellerService.Remove(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _sellerService.Remove(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+               return RedirectToAction(nameof(Error), new { message = "Id not found" });
+            }
         }
 
         public IActionResult Details(int? id)
