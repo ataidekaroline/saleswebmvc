@@ -41,5 +41,9 @@ namespace SalesWebMvc.Models
             return Sales.Where(sr => sr.Date >= initial && sr.Date <= final).Sum(sr => sr.Amount);
         }
 
+        public static implicit operator Seller(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

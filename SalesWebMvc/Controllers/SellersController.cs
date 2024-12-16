@@ -1,24 +1,27 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SalesWebMvc.Services;
 using SalesWebMvc.Models;
+using SalesWebMvc.Controllers;
 using SalesWebMvc.Models.ViewModels;
 using SalesWebMvc.Services.Exceptions;
+using System.Diagnostics;
 
 namespace SalesWebMvc.Controllers
 {
     public class SellersController : Controller
     {
-        private readonly SellersService _sellersService;
+        private readonly SellersService _sellerService;
         private readonly DepartmentService _departmentService;
-        public SellersController(SellersService sellersService, DepartmentService departmentService)
+
+        public SellersController(SellersService sellerService, DepartmentService departmentService)
         {
-            _sellersService = sellersService;
+            _sellerService = sellerService;
             _departmentService = departmentService;
         }
 
         public IActionResult Index()
         {
-            var sellers = _sellersService.FindAll();
+            var sellers = _sellerService.FindAll();
 
             if (sellers == null)
             {
@@ -39,7 +42,7 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Seller seller)
         {
-            _sellersService.Insert(seller);
+            _sellerService.Insert(seller);
             return RedirectToAction(nameof(Index));
         }
 
@@ -47,53 +50,78 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 44
             }
-            var obj = _sellersService.FindById(id.Value);
-            if (obj == null)
+
+            try
             {
-                return NotFound();
+                var obj = _sellerService.FindById(id.Value); // Linha 48
+                return View(obj);
             }
-            return View(obj);
+            catch (NotFoundException e)
+            {
+                // Linha adicionada: Captura a exceção e redireciona para a página de erro
+                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 52
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            _sellersService.Remove(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _sellerService.Remove(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (NotFoundException e)
+            {
+                // Linha adicionada: Captura a exceção e redireciona para a página de erro
+                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 63
+            }
         }
 
         public IActionResult Details(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 70
             }
-            var obj = _sellersService.FindById(id.Value);
-            if (obj == null)
+
+            try
             {
-                return NotFound();
+                var obj = _sellerService.FindById(id.Value); // Linha 74
+                return View(obj);
             }
-            return View(obj);
+            catch (NotFoundException e)
+            {
+                // Linha adicionada: Captura a exceção e redireciona para a página de erro
+                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 78
+            }
         }
 
         public IActionResult Edit(int? id)
         {
             if (id == null)
             {
-                return NotFound();
-            }
-            var obj = _sellersService.FindById(id.Value);
-            if (obj == null)
-            {
-                return NotFound();
+                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 84
             }
 
-            List<Department> departments = _departmentService.FindAll();
-            SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments };
-            return View(viewModel);
+            try
+            {
+                var obj = _sellerService.FindById(id.Value); // Linha 88
+                List<Department> departments = _departmentService.FindAll();
+                SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments };
+                return View(viewModel);
+            }
+            catch (NotFoundException e)
+            {
+                // Linha adicionada: Captura a exceção e redireciona para a página de erro
+                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 94
+            }
         }
 
         [HttpPost]
@@ -102,23 +130,31 @@ namespace SalesWebMvc.Controllers
         {
             if (id != seller.Id)
             {
-                return BadRequest();
+                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
+                return RedirectToAction(nameof(Error), new { message = "Id mismatch" }); // Linha 102
             }
+
             try
             {
-                _sellersService.update(seller);
+                _sellerService.update(seller);
                 return RedirectToAction(nameof(Index));
             }
-            catch (NotFoundException)
+            catch (ApplicationException e)
             {
-                return NotFound();
+                // Linha adicionada: Captura a exceção e redireciona para a página de erro
+                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 110
             }
-            catch (DbConcurrencyException)
-            {
-                return BadRequest();
-            }
-
         }
 
+        public IActionResult Error(string message)
+        {
+            // Método Error permanece inalterado
+            var viewModel = new ErrorViewModel
+            {
+                Message = message,
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            };
+            return View(viewModel);
+        }
     }
 }

@@ -27,7 +27,12 @@ namespace SalesWebMvc.Services
         }
         public Seller FindById(int id)
         {
-            return _context.Seller.Include(obj => obj.Department).First(x => x.Id == id);
+            var seller = _context.Seller.Include(obj => obj.Department).FirstOrDefault(x => x.Id == id);
+            if (seller == null)
+            {
+                throw new NotFoundException($"Seller with ID {id} not found");
+            }
+            return seller;
         }
 
         public void Remove(int id)
