@@ -5,6 +5,7 @@ using SalesWebMvc.Controllers;
 using SalesWebMvc.Models.ViewModels;
 using SalesWebMvc.Services.Exceptions;
 using System.Diagnostics;
+using NuGet.Protocol.Plugins;
 
 namespace SalesWebMvc.Controllers
 {
@@ -15,6 +16,7 @@ namespace SalesWebMvc.Controllers
 
         public SellersController(SellersService sellerService, DepartmentService departmentService)
         {
+        
             _sellerService = sellerService;
             _departmentService = departmentService;
         }
@@ -42,6 +44,13 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Seller seller)
         {
+            if (!ModelState.IsValid)
+            {
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
+            
             _sellerService.Insert(seller);
             return RedirectToAction(nameof(Index));
         }
@@ -50,26 +59,26 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
-                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 44
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); 
             }
 
             try
             {
-                var obj = _sellerService.FindById(id.Value); // Linha 48
+                var obj = _sellerService.FindById(id.Value); 
                 return View(obj);
             }
             catch (NotFoundException e)
             {
-                // Linha adicionada: Captura a exceção e redireciona para a página de erro
-                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 52
+                
+                return RedirectToAction(nameof(Error), new { message = e.Message }); 
             }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, Seller seller)
         {
+            
             try
             {
                 _sellerService.Remove(id);
@@ -77,8 +86,8 @@ namespace SalesWebMvc.Controllers
             }
             catch (NotFoundException e)
             {
-                // Linha adicionada: Captura a exceção e redireciona para a página de erro
-                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 63
+                
+                return RedirectToAction(nameof(Error), new { message = e.Message }); 
             }
         }
 
@@ -86,19 +95,19 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
-                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 70
+               
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); 
             }
 
             try
             {
-                var obj = _sellerService.FindById(id.Value); // Linha 74
+                var obj = _sellerService.FindById(id.Value); 
                 return View(obj);
             }
             catch (NotFoundException e)
             {
-                // Linha adicionada: Captura a exceção e redireciona para a página de erro
-                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 78
+                
+                return RedirectToAction(nameof(Error), new { message = e.Message }); 
             }
         }
 
@@ -106,21 +115,21 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
-                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); // Linha 84
+                
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); 
             }
 
             try
             {
-                var obj = _sellerService.FindById(id.Value); // Linha 88
+                var obj = _sellerService.FindById(id.Value);
                 List<Department> departments = _departmentService.FindAll();
                 SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments };
                 return View(viewModel);
             }
             catch (NotFoundException e)
             {
-                // Linha adicionada: Captura a exceção e redireciona para a página de erro
-                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 94
+               
+                return RedirectToAction(nameof(Error), new { message = e.Message }); 
             }
         }
 
@@ -128,10 +137,16 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Seller seller)
         {
+            if (!ModelState.IsValid)
+            {
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
             if (id != seller.Id)
             {
-                // Linha modificada: Redirecionamento para a página de erro com mensagem personalizada
-                return RedirectToAction(nameof(Error), new { message = "Id mismatch" }); // Linha 102
+                
+                return RedirectToAction(nameof(Error), new { message = "Id mismatch" }); 
             }
 
             try
@@ -141,8 +156,8 @@ namespace SalesWebMvc.Controllers
             }
             catch (ApplicationException e)
             {
-                // Linha adicionada: Captura a exceção e redireciona para a página de erro
-                return RedirectToAction(nameof(Error), new { message = e.Message }); // Linha 110
+                
+                return RedirectToAction(nameof(Error), new { message = e.Message }); 
             }
         }
 
