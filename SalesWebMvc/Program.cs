@@ -20,8 +20,10 @@ builder.Services.AddDbContext<SalesWebMvcContext>(options =>
 
 // Registro dos serviços
 builder.Services.AddScoped<SeedingService>();
-builder.Services.AddScoped<SellerService>(); // Nome atualizado para consistência
+builder.Services.AddScoped<SellerService>(); 
 builder.Services.AddScoped<DepartmentService>();
+builder.Services.AddScoped<SalesRecordService>();
+
 
 // Adiciona suporte para controllers e views
 builder.Services.AddControllersWithViews();
