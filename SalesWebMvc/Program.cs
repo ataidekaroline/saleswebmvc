@@ -1,56 +1,61 @@
-using System.Collections.Generic;
+
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using SalesWebMvc.Data;
 using SalesWebMvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuração do DbContext
+// Configuração de serviços
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
+
+// Configuração do DbContext para SQL Server
 builder.Services.AddDbContext<SalesWebMvcContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SalesWebMvcContext") ?? throw new InvalidOperationException("Connection string 'SalesWebMvcContext' not found.")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("SalesWebMvcContext") ?? throw new InvalidOperationException("Connection string 'SalesWebMvcContext' not found.")
+    ));
 
-// Registrar o SellerService
-builder.Services.AddScoped<SellersService>();
-
-// Registrar o SeedingService
+// Registro dos serviços
 builder.Services.AddScoped<SeedingService>();
-
-// Registrar o Department
+builder.Services.AddScoped<SellersService>(); // Nome atualizado para consistência
 builder.Services.AddScoped<DepartmentService>();
 
-// Adicionar controllers e views
+// Adiciona suporte para controllers e views
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Aplica as migrations e chama o seeding no desenvolvimento
+// Configuração do pipeline de requisições
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
+
+    // Aplica as migrations automaticamente e faz o seeding
     using (var scope = app.Services.CreateScope())
     {
-        // Aplica as migrations automaticamente
         var dbContext = scope.ServiceProvider.GetRequiredService<SalesWebMvcContext>();
-        dbContext.Database.Migrate(); // Aplica as migrations automaticamente
+        dbContext.Database.Migrate(); // Aplica as migrations
 
-        // Chama o método de Seed para adicionar dados
         var seedingService = scope.ServiceProvider.GetRequiredService<SeedingService>();
-        seedingService.Seed(); // Chama o método Seed
+        seedingService.Seed(); // Chama o método de seeding
     }
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();  // The default HSTS value is 30 days. You may want to change this for production scenarios.
+    app.UseHsts(); // Valor padrão de HSTS pode ser modificado para produção
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCookiePolicy();
 app.UseAuthorization();
 
-// Configuração da rota do Controller
+// Configuração da rota padrão
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
