@@ -16,6 +16,9 @@ builder.Services.AddScoped<SellersService>();
 // Registrar o SeedingService
 builder.Services.AddScoped<SeedingService>();
 
+// Registrar o Department
+builder.Services.AddScoped<DepartmentService>();
+
 // Adicionar controllers e views
 builder.Services.AddControllersWithViews();
 
